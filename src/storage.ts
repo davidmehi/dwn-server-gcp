@@ -22,6 +22,9 @@ import {
   SqliteDialect,
 } from '@tbd54566975/dwn-sql-store';
 
+/* New */
+import { DataStoreGcs } from 'dwn-gcs-datastore';
+
 import Database from 'better-sqlite3';
 import { createPool as MySQLCreatePool } from 'mysql2';
 import pg from 'pg';
@@ -40,6 +43,7 @@ export enum BackendTypes {
   SQLITE = 'sqlite',
   MYSQL = 'mysql',
   POSTGRES = 'postgres',
+  GCS = 'gcs'
 }
 
 export type StoreType = DataStore | EventLog | MessageStore;
@@ -48,7 +52,7 @@ export function getDWNConfig(
   config: DwnServerConfig,
   tenantGate: TenantGate,
 ): DwnConfig {
-  const dataStore: DataStore = getStore(config.dataStore, EStoreType.DataStore);
+  const dataStore: DataStore = getGcsStore(); // getStore(config.dataStore, EStoreType.DataStore);
   const eventLog: EventLog = getStore(config.eventLog, EStoreType.EventLog);
   const messageStore: MessageStore = getStore(
     config.messageStore,
@@ -97,6 +101,10 @@ function getDBStore(
   }
 }
 
+function getGcsStore(): DataStore {
+  return new DataStoreGcs();
+}
+
 function getStore(
   storeString: string,
   storeType: EStoreType.DataStore,
@@ -120,6 +128,9 @@ function getStore(storeString: string, storeType: EStoreType): StoreType {
     case BackendTypes.MYSQL:
     case BackendTypes.POSTGRES:
       return getDBStore(getDialectFromURI(storeURI), storeType);
+
+    case BackendTypes.GCS:
+      return getGcsStore();
 
     default:
       throw invalidStorageSchemeMessage(storeURI.protocol);
