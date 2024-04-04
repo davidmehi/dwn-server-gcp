@@ -9,6 +9,7 @@ import type {
   DataStore,
   DwnConfig,
   EventLog,
+  EventStream,
   MessageStore,
   TenantGate,
 } from '@tbd54566975/dwn-sdk-js';
@@ -49,17 +50,21 @@ export enum BackendTypes {
 export type StoreType = DataStore | EventLog | MessageStore;
 
 export function getDWNConfig(
-  config: DwnServerConfig,
-  tenantGate: TenantGate,
+  config  : DwnServerConfig,
+  options : {
+    tenantGate?  : TenantGate,
+    eventStream? : EventStream,
+  }
 ): DwnConfig {
-  const dataStore: DataStore = getGcsStore(); // getStore(config.dataStore, EStoreType.DataStore);
+  const { tenantGate, eventStream } = options;
+  const dataStore: DataStore = getStore(config.dataStore, EStoreType.DataStore);
   const eventLog: EventLog = getStore(config.eventLog, EStoreType.EventLog);
   const messageStore: MessageStore = getStore(
     config.messageStore,
     EStoreType.MessageStore,
   );
 
-  return { eventLog, dataStore, messageStore, tenantGate };
+  return { eventStream, eventLog, dataStore, messageStore, tenantGate };
 }
 
 function getLevelStore(

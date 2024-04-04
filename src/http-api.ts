@@ -17,21 +17,34 @@ import { createJsonRpcErrorResponse, JsonRpcErrorCodes } from './lib/json-rpc.js
 import type { DwnServerConfig } from './config.js';
 import { config } from './config.js';
 import { type DwnServerError } from './dwn-error.js';
-import { jsonRpcApi } from './json-rpc-api.js';
+import { jsonRpcRouter } from './json-rpc-api.js';
 import { requestCounter, responseHistogram } from './metrics.js';
 import type { RegistrationManager } from './registration/registration-manager.js';
 
-const packageJson = process.env.npm_package_json ? JSON.parse(readFileSync(process.env.npm_package_json).toString()) : {};
 
 export class HttpApi {
   #config: DwnServerConfig;
+  #packageInfo: { version?: string, sdkVersion?: string, server: string };
   #api: Express;
   #server: http.Server;
   registrationManager: RegistrationManager;
   dwn: Dwn;
 
-  constructor(config: DwnServerConfig, dwn: Dwn, registrationManager: RegistrationManager) {
+  constructor(config: DwnServerConfig, dwn: Dwn, registrationManager?: RegistrationManager) {
     console.log(config);
+
+    this.#packageInfo = {
+      server: config.serverName,
+    };
+    
+    try {
+      // We populate the `version` and `sdkVersion` properties from the `package.json` file.
+      const packageJson = JSON.parse(readFileSync(config.packageJsonPath).toString());
+      this.#packageInfo.version = packageJson.version;
+      this.#packageInfo.sdkVersion = packageJson.dependencies ? packageJson.dependencies['@tbd54566975/dwn-sdk-js'] : undefined;
+    } catch (error: any) {
+      log.error('could not read `package.json` for version info', error);
+    }
 
     this.#config = config;
     this.#api = express();
@@ -149,7 +162,7 @@ export class HttpApi {
         transport  : 'http',
         dataStream : requestDataStream,
       };
-      const { jsonRpcResponse, dataStream: responseDataStream } = await jsonRpcApi.handle(dwnRpcRequest, requestContext as RequestContext);
+      const { jsonRpcResponse, dataStream: responseDataStream } = await jsonRpcRouter.handle(dwnRpcRequest, requestContext as RequestContext);
 
       // If the handler catches a thrown exception and returns a JSON RPC InternalError, return the equivalent
       // HTTP 500 Internal Server Error with the response.
@@ -185,11 +198,12 @@ export class HttpApi {
       }
 
       res.json({
-        server                   : process.env.npm_package_name,
+        server                   : this.#packageInfo.server,
         maxFileSize              : config.maxRecordDataSize,
         registrationRequirements : registrationRequirements,
-        version                  : packageJson.version,
-        sdkVersion               : packageJson.dependencies['@tbd54566975/dwn-sdk-js'],
+        version                  : this.#packageInfo.version,
+        sdkVersion               : this.#packageInfo.sdkVersion,
+        webSocketSupport         : config.webSocketSupport,
       });
     });
   }
