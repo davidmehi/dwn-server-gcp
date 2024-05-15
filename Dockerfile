@@ -7,6 +7,8 @@ WORKDIR /dwn-server
 
 COPY package.json package-lock.json tsconfig.json entrypoint.sh ./
 COPY src ./src
+COPY npmrc ./.npmrc
+COPY TOS.txt ./TOS.txt
 
 # DWN's levelDB has issues running on m1 when using an alpine base image, 
 # so we have to install prerequisites and build node deps from source.

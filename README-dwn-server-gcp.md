@@ -29,12 +29,12 @@ Example (https://medium.com/@abhay.pixolo/naming-conventions-for-git-branches-a-
 2. Confirm code changes are included
 
 2.1 Copy dwn-gcs-datatore to node_modules
-2.2 in package.json, confirm dwn-sdk-js and dwn-sql-store versions are correct.  Include dwn-gcs-datatore and latest version
+2.2 in package.json, confirm dwn-sdk-js and dwn-sql-store versions are correct.  Include dwn-gcs-datatore and latest version.  ("@local-npm-registry/dwn-gcs-datastore": "0.x.x")
 2.3 src/storage.ts
 
 ```
 /* Line 26 */
-import { DataStoreGcs } from 'dwn-gcs-datastore';
+import { DataStoreGcs } from '@local-npm-registry/dwn-gcs-datastore';
 
 @@ -40,6 +43,7 @@ export enum BackendTypes {
   SQLITE = 'sqlite',
@@ -66,6 +66,23 @@ function getStore(
   }
 ```
 
+2.4 Dockerfile
+Add lines 10-11
+COPY npmrc ./.npmrc
+COPY TOS.txt ./TOS.txt
+
+2.5 TOS Files
+Add TOS.txt
+
+```
+COPY npmrc ./.npmrc
+COPY TOS.txt ./TOS.txt
+```
+
+2.6 Update package.json
+add at line 98:
+"artifactregistry-login": "npx google-artifactregistry-auth"
+
 3. Add cloudbuild.yaml and submitBuild.sh
 5. Run tests:
 
@@ -88,6 +105,9 @@ export DWN_PG_PORT=1234
 export DWN_PG_DB=dwn_data_store_dev
 export DWN_PG_USER=dwn-app
 export DWN_PG_PWD=***
+
+npm run artifactregistry-login
+
 npm run test
 
 ```
@@ -96,7 +116,7 @@ npm run test
 
 If the change is big enough to warrant a version update, then increase the version number in package.json
 
-7. Commit changes and push branch
+7. Remove password reference in cloudbuild.yaml.  Commit changes and push branch
 
 
 ```

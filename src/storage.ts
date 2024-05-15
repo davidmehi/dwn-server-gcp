@@ -24,7 +24,7 @@ import {
 } from '@tbd54566975/dwn-sql-store';
 
 /* New */
-import { DataStoreGcs } from 'dwn-gcs-datastore';
+import { DataStoreGcs } from '@local-npm-registry/dwn-gcs-datastore';
 
 import Database from 'better-sqlite3';
 import { createPool as MySQLCreatePool } from 'mysql2';
@@ -57,7 +57,7 @@ export function getDWNConfig(
   }
 ): DwnConfig {
   const { tenantGate, eventStream } = options;
-  const dataStore: DataStore = getStore(config.dataStore, EStoreType.DataStore);
+  const dataStore: DataStore = getGcsStore(); //getStore(config.dataStore, EStoreType.DataStore);
   const eventLog: EventLog = getStore(config.eventLog, EStoreType.EventLog);
   const messageStore: MessageStore = getStore(
     config.messageStore,

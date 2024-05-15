@@ -28,6 +28,7 @@
   "dependencies": {
     "@tbd54566975/dwn-sdk-js": "0.3.2",
     "@tbd54566975/dwn-sql-store": "0.4.2",
+    "@local-npm-registry/dwn-gcs-datastore": "0.4.2",
     "better-sqlite3": "^8.5.0",
     "body-parser": "^1.20.2",
     "bytes": "3.1.2",
@@ -93,7 +94,8 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "npm run build:esm && cp -R tests/fixtures dist/esm/tests && c8 mocha",
     "server": "npm run build:esm && node dist/esm/src/main.js",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "artifactregistry-login": "npx google-artifactregistry-auth"
   },
   "husky": {
     "hooks": {

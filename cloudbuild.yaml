@@ -1,0 +1,26 @@
+steps:
+- id: "build docker image"
+  name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/*/dwn-server-gcp:v0.2.2', '.' ]
+- id: "push docker image"
+  name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/*/dwn-server-gcp:v0.2.2' ]
+- id: "deploy to cloud run"
+  name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'run'
+  - 'deploy'
+  - 'dwn-server-gcp'
+  - '--image'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/*/dwn-server-gcp:v0.2.2'
+  - '--port'
+  - '3000'
+  - '--region'
+  - 'us-central1'
+  - '--platform'
+  - 'managed'
+  - '--add-cloudsql-instances'
+  - '*'
+  - '--set-env-vars'
+  - 'DWN_GCS_BUCKET_NAME=*,DWN_STORAGE=postgres:///dwn,PGHOST=*,PGDATABASE=*,PGUSER=*,PGPASSWORD=*,DWN_REGISTRATION_PROOF_OF_WORK_ENABLED=true,DWN_TERMS_OF_SERVICE_FILE_PATH=/dwn-server/TOS.txt'
+  - '--allow-unauthenticated'
