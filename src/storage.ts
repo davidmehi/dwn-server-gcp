@@ -4,13 +4,16 @@ import {
   DataStoreLevel,
   EventLogLevel,
   MessageStoreLevel,
+  ResumableTaskStoreLevel,
 } from '@tbd54566975/dwn-sdk-js';
+import type { DidResolver } from '@web5/dids';
 import type {
   DataStore,
   DwnConfig,
   EventLog,
   EventStream,
   MessageStore,
+  ResumableTaskStore,
   TenantGate,
 } from '@tbd54566975/dwn-sdk-js';
 import type { Dialect } from '@tbd54566975/dwn-sql-store';
@@ -20,6 +23,7 @@ import {
   MessageStoreSql,
   MysqlDialect,
   PostgresDialect,
+  ResumableTaskStoreSql,
   SqliteDialect,
 } from '@tbd54566975/dwn-sql-store';
 
@@ -37,6 +41,7 @@ export enum EStoreType {
   DataStore,
   MessageStore,
   EventLog,
+  ResumableTaskStore,
 }
 
 export enum BackendTypes {
@@ -47,11 +52,12 @@ export enum BackendTypes {
   GCS = 'gcs'
 }
 
-export type StoreType = DataStore | EventLog | MessageStore;
+export type StoreType = DataStore | EventLog | MessageStore | ResumableTaskStore;
 
 export function getDWNConfig(
   config  : DwnServerConfig,
   options : {
+    didResolver? : DidResolver,
     tenantGate?  : TenantGate,
     eventStream? : EventStream,
   }
@@ -59,18 +65,16 @@ export function getDWNConfig(
   const { tenantGate, eventStream } = options;
   const dataStore: DataStore = getGcsStore(); //getStore(config.dataStore, EStoreType.DataStore);
   const eventLog: EventLog = getStore(config.eventLog, EStoreType.EventLog);
-  const messageStore: MessageStore = getStore(
-    config.messageStore,
-    EStoreType.MessageStore,
-  );
+  const messageStore: MessageStore = getStore(config.messageStore, EStoreType.MessageStore);
+  const resumableTaskStore: ResumableTaskStore = getStore(config.messageStore, EStoreType.ResumableTaskStore);
 
-  return { eventStream, eventLog, dataStore, messageStore, tenantGate };
+  return { didResolver, eventStream, eventLog, dataStore, messageStore, resumableTaskStore, tenantGate };
 }
 
 function getLevelStore(
   storeURI: URL,
   storeType: EStoreType,
-): DataStore | MessageStore | EventLog {
+): DataStore | MessageStore | EventLog | ResumableTaskStore {
   switch (storeType) {
     case EStoreType.DataStore:
       return new DataStoreLevel({
@@ -85,6 +89,10 @@ function getLevelStore(
       return new EventLogLevel({
         location: storeURI.host + storeURI.pathname + '/EVENTLOG',
       });
+    case EStoreType.ResumableTaskStore:
+      return new ResumableTaskStoreLevel({
+        location: storeURI.host + storeURI.pathname + '/RESUMABLE-TASK-STORE',
+      });
     default:
       throw new Error('Unexpected level store type');
   }
@@ -93,7 +101,7 @@ function getLevelStore(
 function getDBStore(
   db: Dialect,
   storeType: EStoreType,
-): DataStore | MessageStore | EventLog {
+): DataStore | MessageStore | EventLog | ResumableTaskStore {
   switch (storeType) {
     case EStoreType.DataStore:
       return new DataStoreSql(db);
@@ -101,6 +109,8 @@ function getDBStore(
       return new MessageStoreSql(db);
     case EStoreType.EventLog:
       return new EventLogSql(db);
+    case EStoreType.ResumableTaskStore:
+      return new ResumableTaskStoreSql(db);
     default:
       throw new Error('Unexpected db store type');
   }
@@ -122,6 +132,10 @@ function getStore(
   storeString: string,
   storeType: EStoreType.MessageStore,
 ): MessageStore;
+function getStore(
+  storeString: string,
+  storeType: EStoreType.ResumableTaskStore,
+): ResumableTaskStore;
 function getStore(storeString: string, storeType: EStoreType): StoreType {
   const storeURI = new URL(storeString);
 
@@ -142,15 +156,15 @@ function getStore(storeString: string, storeType: EStoreType): StoreType {
   }
 }
 
-export function getDialectFromURI(u: URL): Dialect {
-  switch (u.protocol.slice(0, -1)) {
+export function getDialectFromURI(connectionUrl: URL): Dialect {
+  switch (connectionUrl.protocol.slice(0, -1)) {
     case BackendTypes.SQLITE:
-      const path = u.host + u.pathname;
+      const path = connectionUrl.host + connectionUrl.pathname;
       console.log('SQL-lite relative path:', path ? path : undefined); // NOTE, using ? for lose equality comparison
 
-      if (u.host && !fs.existsSync(u.host)) {
-        console.log('SQL-lite directory does not exist, creating:', u.host);
-        fs.mkdirSync(u.host, { recursive: true });
+      if (connectionUrl.host && !fs.existsSync(connectionUrl.host)) {
+        console.log('SQL-lite directory does not exist, creating:', connectionUrl.host);
+        fs.mkdirSync(connectionUrl.host, { recursive: true });
       }
 
       return new SqliteDialect({
@@ -158,11 +172,11 @@ export function getDialectFromURI(u: URL): Dialect {
       });
     case BackendTypes.MYSQL:
       return new MysqlDialect({
-        pool: async () => MySQLCreatePool(u.toString()),
+        pool: async () => MySQLCreatePool(connectionUrl.toString()),
       });
     case BackendTypes.POSTGRES:
       return new PostgresDialect({
-        pool: async () => new pg.Pool({ u }),
+        pool: async () => new pg.Pool({ connectionString: connectionUrl.toString() }),
         cursor: Cursor,
       });
   }

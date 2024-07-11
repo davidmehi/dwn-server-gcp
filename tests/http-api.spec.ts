@@ -13,7 +13,6 @@ import {
 import type { Dwn, DwnError, Persona, ProtocolsConfigureMessage, RecordsQueryReply } from '@tbd54566975/dwn-sdk-js';
 
 import { expect } from 'chai';
-import type { Server } from 'http';
 import fetch from 'node-fetch';
 import { webcrypto } from 'node:crypto';
 import { useFakeTimers } from 'sinon';
@@ -47,7 +46,6 @@ if (!globalThis.crypto) {
 
 describe('http api', function () {
   let httpApi: HttpApi;
-  let server: Server;
   let alice: Persona;
   let registrationManager: RegistrationManager;
   let dwn: Dwn;
@@ -69,13 +67,13 @@ describe('http api', function () {
 
     dwn = await getTestDwn({ tenantGate: registrationManager });
 
-    httpApi = new HttpApi(config, dwn, registrationManager);
+    httpApi = await HttpApi.create(config, dwn, registrationManager);
 
   });
 
   beforeEach(async function () {
     sinon.restore();
-    server = await httpApi.start(3000);
+    await httpApi.start(3000);
 
     // generate a new persona for each test to avoid state pollution
     alice = await TestDataGenerator.generateDidKeyPersona();
@@ -83,8 +81,7 @@ describe('http api', function () {
   });
 
   afterEach(async function () {
-    server.close();
-    server.closeAllConnections();
+    await httpApi.close();
   });
 
   after(function () {
@@ -1042,6 +1039,7 @@ describe('http api', function () {
       expect(resp.status).to.equal(200);
 
       const info = await resp.json();
+      expect(info['url']).to.equal('http://localhost');
       expect(info['server']).to.equal('@web5/dwn-server');
       expect(info['registrationRequirements']).to.include('terms-of-service');
       expect(info['registrationRequirements']).to.include(
@@ -1059,12 +1057,11 @@ describe('http api', function () {
 
 
       // start server without websocket support enabled
-      server.close();
-      server.closeAllConnections();
+      await httpApi.close();
 
       config.webSocketSupport = false;
-      httpApi = new HttpApi(config, dwn, registrationManager);
-      server = await httpApi.start(3000);
+      httpApi = await HttpApi.create(config, dwn, registrationManager);
+      await httpApi.start(3000);
 
       resp = await fetch(`http://localhost:3000/info`);
       expect(resp.status).to.equal(200);
@@ -1078,8 +1075,7 @@ describe('http api', function () {
     });
 
     it('verify /info still returns when package.json file does not exist', async function () {
-      server.close();
-      server.closeAllConnections();
+      await httpApi.close();
 
       // set up spy to check for an error log by the server
       const logSpy = sinon.spy(log, 'error');
@@ -1087,8 +1083,8 @@ describe('http api', function () {
       // set the config to an invalid file path
       const packageJsonConfig = config.packageJsonPath;
       config.packageJsonPath = '/some/invalid/file.json';
-      httpApi = new HttpApi(config, dwn, registrationManager);
-      server = await httpApi.start(3000);
+      httpApi = await HttpApi.create(config, dwn, registrationManager);
+      await httpApi.start(3000);
 
       const resp = await fetch(`http://localhost:3000/info`);
       const info = await resp.json();
@@ -1110,14 +1106,13 @@ describe('http api', function () {
     });
 
     it('verify /info returns server name from config', async function () {
-      server.close();
-      server.closeAllConnections();
+      await httpApi.close();
 
       // set a custom name for the `serverName`
       const serverName = config.serverName;
       config.serverName = '@web5/dwn-server-2'
-      httpApi = new HttpApi(config, dwn, registrationManager);
-      server = await httpApi.start(3000);
+      httpApi = await HttpApi.create(config, dwn, registrationManager);
+      await httpApi.start(3000);
 
       const resp = await fetch(`http://localhost:3000/info`);
       const info = await resp.json();

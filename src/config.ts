@@ -10,6 +10,28 @@ export const config = {
    * otherwise we fall back on the use defined `DWN_SERVER_PACKAGE_NAME` or `@web5/dwn-server`.
    */
   serverName: process.env.npm_package_name || process.env.DWN_SERVER_PACKAGE_NAME || '@web5/dwn-server',
+
+  /**
+   * The base external URL of this DWN.
+   * This is used to construct URL paths such as the `Request URI` in the Web5 Connect flow.
+   */
+  baseUrl: process.env.DWN_BASE_URL || 'http://localhost',
+
+  /**
+   * Port that server listens on.
+   */
+  port: parseInt(process.env.DS_PORT || '3000'),
+
+  /**
+   * The URL of the TTL cache used by the DWN.
+   * NOTE: Used for session/state keeping, thus requires the cache to be commonly addressable by nodes in a cloud cluster environment.
+   * 
+   * Currently only supports SQL databases, e.g.
+   * Postgres: 'postgres://root:dwn@localhost:5432/dwn'
+   * MySQL: 'mysql://root:dwn@localhost:3306/dwn'
+   */
+  ttlCacheUrl: process.env.DWN_TTL_CACHE_URL || 'sqlite://',
+
   /**
    * Used to populate the `version` and `sdkVersion` properties returned by the `/info` endpoint.
    *
@@ -21,8 +43,7 @@ export const config = {
   packageJsonPath:  process.env.npm_package_json ||  process.env.DWN_SERVER_PACKAGE_JSON || '/dwn-server/package.json',
   // max size of data that can be provided with a RecordsWrite
   maxRecordDataSize: bytes(process.env.MAX_RECORD_DATA_SIZE || '1gb'),
-  // port that server listens on
-  port: parseInt(process.env.DS_PORT || '3000'),
+
   // whether to enable 'ws:'
   webSocketSupport: { on: true, off: false }[process.env.DS_WEBSOCKET_SERVER] ?? true,
   // where to store persistent data
