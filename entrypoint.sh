@@ -2,4 +2,4 @@
 
 cd /dwn-server
 
-exec node /dwn-server/dist/esm/src/main.js
+exec node /dwn-server/dist/esm/main.js

@@ -7,3 +7,6 @@ cp ~/.npmrc ./npmrc
 
 # start the build process
 gcloud builds submit . 
+
+# Delete file
+rm npmrc

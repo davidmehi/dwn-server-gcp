@@ -1,4 +1,4 @@
-FROM node:18-buster
+FROM node:20-buster
 
 ARG DS_PORT
 ENV DS_PORT=${DS_PORT:-3000}

@@ -29,8 +29,12 @@ Example (https://medium.com/@abhay.pixolo/naming-conventions-for-git-branches-a-
 2. Confirm code changes are included
 
 2.1 Copy dwn-gcs-datatore to node_modules
-2.2 in package.json, confirm dwn-sdk-js and dwn-sql-store versions are correct.  Include dwn-gcs-datatore and latest version.  ("@local-npm-registry/dwn-gcs-datastore": "0.x.x")
-2.3 src/storage.ts
+2.2 in package.json, confirm:
+      * dwn-sdk-js is up to date
+      * dwn-sql-store is up to date.  
+      * @local-npm-registry/dwn-gcs-datastore is up to date
+      * @local-npm-registry/dwn-gcs-dwn-message-stream-pub-sub is up to date
+2.3 Confirm src/storage.ts has these changes:
 
 ```
 /* Line 26 */
@@ -67,17 +71,20 @@ function getStore(
 ```
 
 2.4 Dockerfile
-Add lines 10-11
+# Line 1
+FROM node:20-buster
+
+# Add lines 10-11
 COPY npmrc ./.npmrc
 COPY TOS.txt ./TOS.txt
 
 2.5 TOS Files
 Add TOS.txt
 
-```
-COPY npmrc ./.npmrc
-COPY TOS.txt ./TOS.txt
-```
+
+2.6 Update entrypoint.sh to the following:
+
+exec node /dwn-server/dist/esm/main.js
 
 2.6 Update package.json
 add at line 98:
@@ -131,3 +138,5 @@ Update cloudbuild.yaml to match environment.
 
 `submitBuild.sh`
 
+
+9. Restore cloudbuild.yaml to original version, removing passwords and other sensitive config
