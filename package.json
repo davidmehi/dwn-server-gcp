@@ -1,5 +1,5 @@
 {
-  "name": "@web5/dwn-server",
+  "name": "@local-npm-registry/dwn-server-gcp",
   "type": "module",
   "version": "0.4.1",
   "files": [
@@ -19,15 +19,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TBD54566975/dwn-server.git"
+    "url": "https://github.com/davidmehi/dwn-server-gcp.git"
   },
-  "homepage": "https://github.com/TBD54566975/dwn-server#readme",
+  "homepage": "https://github.com/davidmehi/dwn-server-gcp#readme",
   "bugs": {
-    "url": "https://github.com/TBD54566975/dwn-server/issues"
+    "url": "https://github.com/davidmehi/dwn-server-gcp/issues"
   },
   "dependencies": {
     "@tbd54566975/dwn-sdk-js": "0.4.2",
     "@tbd54566975/dwn-sql-store": "0.6.1",
+    "@local-npm-registry/dwn-datastore-gcs": "0.1.0",
+    "@local-npm-registry/dwn-message-stream-pub-sub": "0.1.0",
     "better-sqlite3": "^8.5.0",
     "body-parser": "^1.20.2",
     "bytes": "3.1.2",

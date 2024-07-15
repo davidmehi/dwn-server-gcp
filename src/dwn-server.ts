@@ -13,8 +13,10 @@ import { HttpServerShutdownHandler } from './lib/http-server-shutdown-handler.js
 import { HttpApi } from './http-api.js';
 import { RegistrationManager } from './registration/registration-manager.js';
 import { WsApi } from './ws-api.js';
-import { Dwn, EventEmitterStream } from '@tbd54566975/dwn-sdk-js';
+import { Dwn } from '@tbd54566975/dwn-sdk-js';
 import { removeProcessHandlers, setProcessHandlers } from './process-handlers.js';
+
+import { EventEmitterStream } from '@local-npm-registry/dwn-message-stream-pub-sub';
 
 /**
  * Options for the DwnServer constructor.
@@ -99,6 +101,8 @@ export class DwnServer {
       });
 
       let eventStream: EventStream | undefined;
+      // Set eventStream with EventEmitterStream from @local-npm-registry/dwn-message-stream-pub-sub;
+      eventStream = new EventEmitterStream();
       if (this.config.webSocketSupport) {
         // setting `EventEmitterStream` as default the default `EventStream
         // if an alternate implementation is needed, instantiate a `Dwn` with a custom `EventStream` and add it to server options. 

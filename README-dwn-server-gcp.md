@@ -28,8 +28,7 @@ Example (https://medium.com/@abhay.pixolo/naming-conventions-for-git-branches-a-
 
 2. Confirm code changes are included
 
-2.1 Copy dwn-gcs-datatore to node_modules
-2.2 in package.json, confirm:
+2.1 in package.json, confirm:
       * dwn-sdk-js is up to date
       * dwn-sql-store is up to date.  
       * @local-npm-registry/dwn-gcs-datastore is up to date
@@ -90,7 +89,14 @@ exec node /dwn-server/dist/esm/main.js
 add at line 98:
 "artifactregistry-login": "npx google-artifactregistry-auth"
 
-3. Add cloudbuild.yaml and submitBuild.sh
+3. Configure the Event Stream for PubSub
+
+In src/dwn-server.ts, around line 105/106, set eventStream to the EventEmitterStream in @local-npm-registry/dwn-message-stream-pub-sub
+```
+eventStream = new EventEmitterStream();
+```
+
+4. Add cloudbuild.yaml and submitBuild.sh
 5. Run tests:
 
 

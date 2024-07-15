@@ -28,7 +28,7 @@ import {
 } from '@tbd54566975/dwn-sql-store';
 
 /* New */
-import { DataStoreGcs } from '@local-npm-registry/dwn-gcs-datastore';
+import { DataStoreGcs } from '@local-npm-registry/dwn-datastore-gcs';
 
 import Database from 'better-sqlite3';
 import { createPool as MySQLCreatePool } from 'mysql2';
