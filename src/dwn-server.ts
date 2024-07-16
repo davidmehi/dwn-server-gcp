@@ -16,7 +16,7 @@ import { WsApi } from './ws-api.js';
 import { Dwn } from '@tbd54566975/dwn-sdk-js';
 import { removeProcessHandlers, setProcessHandlers } from './process-handlers.js';
 
-import { EventEmitterStream } from '@local-npm-registry/dwn-message-stream-pub-sub';
+import { EventEmitterStream } from '@local-npm-registry/dwn-eventstream-pubsub';
 
 /**
  * Options for the DwnServer constructor.

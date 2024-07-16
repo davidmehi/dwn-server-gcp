@@ -29,7 +29,7 @@
     "@tbd54566975/dwn-sdk-js": "0.4.2",
     "@tbd54566975/dwn-sql-store": "0.6.1",
     "@local-npm-registry/dwn-datastore-gcs": "0.1.0",
-    "@local-npm-registry/dwn-message-stream-pub-sub": "0.1.0",
+    "@local-npm-registry/dwn-eventstream-pubsub": "0.1.1",
     "better-sqlite3": "^8.5.0",
     "body-parser": "^1.20.2",
     "bytes": "3.1.2",

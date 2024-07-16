@@ -62,9 +62,10 @@ export function getDWNConfig(
     eventStream? : EventStream,
   }
 ): DwnConfig {
-  const { tenantGate, eventStream } = options;
+  const { tenantGate, eventStream, didResolver } = options;
   const dataStore: DataStore = getGcsStore(); //getStore(config.dataStore, EStoreType.DataStore);
   const eventLog: EventLog = getStore(config.eventLog, EStoreType.EventLog);
+  console.log("Getting messageStore");
   const messageStore: MessageStore = getStore(config.messageStore, EStoreType.MessageStore);
   const resumableTaskStore: ResumableTaskStore = getStore(config.messageStore, EStoreType.ResumableTaskStore);
 
@@ -137,8 +138,10 @@ function getStore(
   storeType: EStoreType.ResumableTaskStore,
 ): ResumableTaskStore;
 function getStore(storeString: string, storeType: EStoreType): StoreType {
+  console.log("storeString:" + storeString);
   const storeURI = new URL(storeString);
-
+  console.log("storeURI:" + storeURI);
+  console.log(storeURI.protocol.slice(0, -1));
   switch (storeURI.protocol.slice(0, -1)) {
     case BackendTypes.LEVEL:
       return getLevelStore(storeURI, storeType);
@@ -146,6 +149,7 @@ function getStore(storeString: string, storeType: EStoreType): StoreType {
     case BackendTypes.SQLITE:
     case BackendTypes.MYSQL:
     case BackendTypes.POSTGRES:
+      console.log("BackendTypes.POSTGRES:" + BackendTypes.POSTGRES);
       return getDBStore(getDialectFromURI(storeURI), storeType);
 
     case BackendTypes.GCS:
@@ -157,6 +161,7 @@ function getStore(storeString: string, storeType: EStoreType): StoreType {
 }
 
 export function getDialectFromURI(connectionUrl: URL): Dialect {
+  console.log("connection protocol: " + connectionUrl.protocol.slice(0, -1));
   switch (connectionUrl.protocol.slice(0, -1)) {
     case BackendTypes.SQLITE:
       const path = connectionUrl.host + connectionUrl.pathname;
@@ -175,10 +180,23 @@ export function getDialectFromURI(connectionUrl: URL): Dialect {
         pool: async () => MySQLCreatePool(connectionUrl.toString()),
       });
     case BackendTypes.POSTGRES:
+      console.log("Postgres connectionUrl: " + connectionUrl.toString());
+      console.log("PGHOST: " + process.env.PGHOST);
+      //return new PostgresDialect({
+      //  pool: async () => new pg.Pool({ connectionString: connectionUrl.toString() }),
+      //  cursor: Cursor,
+      //});
+
       return new PostgresDialect({
-        pool: async () => new pg.Pool({ connectionString: connectionUrl.toString() }),
-        cursor: Cursor,
-      });
+          pool: async () => new pg.Pool({
+            host     : process.env.PGHOST,
+            port     : Number(process.env.PGPORT),
+            database : process.env.PGDATABASE,
+            user     : process.env.PGUSER,
+            password : process.env.PGPASSWORD
+          }),
+          cursor: Cursor,
+        });
   }
 }
 
