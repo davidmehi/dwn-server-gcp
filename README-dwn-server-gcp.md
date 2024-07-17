@@ -142,6 +142,9 @@ git push
 
 Update cloudbuild.yaml to match environment.
 
+`npm install`
+`npm run build`
+
 `submitBuild.sh`
 
 
